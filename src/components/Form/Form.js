@@ -1,52 +1,93 @@
-import shortid from 'shortid';
-import { useDispatch } from 'react-redux';
+import { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { Report } from 'notiflix/build/notiflix-report-aio';
+import { BsPersonAdd } from 'react-icons/bs';
+
+import { getContacts } from 'redux/selectors';
 import { addContact } from 'redux/contactSlice';
-import { FormBox, Input } from './Form.styled';
-// import PropTypes from 'prop-types';
 
+import { Form, Label, Input, Button } from './Form.styled';
 
-export function Form () {
-  const dispatch = useDispatch(); 
+export const ContactForm = () => {
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
+  const contacts = useSelector(getContacts);
+  const dispatch = useDispatch();
 
-    const inputSubmit = evt => {
-    evt.preventDefault();
+  const formReset = () => {
+    setName('');
+    setNumber('');
+  };
 
-    const newContact = {
-      id: shortid.generate(),
-      name: evt.target.elements.name.value,
-      number: evt.target.elements.number.value,
-    };
+  const inputChangeHandler = e => {
+    const { name, value } = e.currentTarget;
+    switch (name) {
+      case 'name':
+        setName(value);
+        break;
+      case 'number':
+        setNumber(value);
+        break;
+      default:
+        throw new Error('unsupported input name');
+    }
+  };
 
-    dispatch(addContact(newContact));
+  const submitHandler = e => {
+    e.preventDefault();
+    const {
+      name: { value: name },
+      number: { value: number },
+    } = e.currentTarget.elements;
 
-    evt.target.reset();
+    const isExists = contacts.some(
+      contact => contact.name.toLowerCase() === name.toLowerCase()
+    );
+    if (isExists) {
+      return Report.info(
+        'Enter correct information',
+        `${name} is already in contacts`,
+        'Ok'
+      );
+    }
+    dispatch(addContact({ name, number }));
+
+    formReset();
   };
 
   return (
-      <FormBox onSubmit={inputSubmit}>
-        <label>
-          Name
+    <>
+      <Form onSubmit={submitHandler}>
+        <Label>
+          Name:
           <Input
             type="text"
             name="name"
-            pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
+            value={name}
+            pattern="^[a-zA-Zа-яіїєґА-ЯІЇЄҐ]+(([' -][a-zA-Zа-яіїєґА-ЯІЇЄҐ ])?[a-zA-Zа-яіїєґА-ЯІЇЄҐ]*)*$"
+            maxLength={35}
             title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
             required
-            placeholder="Enter you name"
+            onChange={inputChangeHandler}
           />
-        </label>
-        <label>
-          Number
+        </Label>
+        <Label>
+          Number:
           <Input
             type="tel"
             name="number"
+            value={number}
             pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
+            maxLength={35}
             title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
             required
-            placeholder="Enter number"
+            onChange={inputChangeHandler}
           />
-        </label>
-        <button type="submit">Add contact</button>
-      </FormBox>
-    );
-  };
+        </Label>
+        <Button type="submit">
+          <BsPersonAdd size="35px" color="grey" />
+        </Button>
+      </Form>
+    </>
+  );
+};

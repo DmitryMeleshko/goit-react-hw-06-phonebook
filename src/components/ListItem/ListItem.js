@@ -1,24 +1,30 @@
-import { useDispatch } from 'react-redux';
-import { deleteContact } from 'redux/contactSlice';
+import PropTypes from 'prop-types';
+import { MdOutlineDeleteForever } from 'react-icons/md';
+import { RiContactsLine } from 'react-icons/ri';
+import {
+  ListItem,
+  Contact,
+  Button,
+  ContactWrapper,
+} from './ListItem.styled';
 
-import { Item } from './ListItem.styled';
-
-export function ListItem ({ id, name, number }) {
-const dispatch = useDispatch();
-
+export const ContactItem = ({ name, number, onDelete }) => {
   return (
-    <Item key={id}>
-      <p>{name}</p>
-      <p>{number}</p>
-      <button
-        type="button"
-        onClick={() => {
-          dispatch(deleteContact(id));
-        }}
-      >
-        Delete
-      </button>
-    </Item>
+    <ListItem>
+      <ContactWrapper>
+        <RiContactsLine size="20px" color="grey" />
+        <Contact>{`${name}: ${number}`}</Contact>
+      </ContactWrapper>
+      <Button type="button" onClick={onDelete}>
+        <MdOutlineDeleteForever size="25px" color="grey" />
+      </Button>
+    </ListItem>
   );
+};
+
+ContactItem.propTypes = {
+  name: PropTypes.string.isRequired,
+  number: PropTypes.string.isRequired,
+  onDelete: PropTypes.func.isRequired,
 };
 
